@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State of the Union Drinking Bingo 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #991b1b 100%);
+            min-height: 100vh;
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: clamp(10px, 3vw, 60px);
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: clamp(15px, 3vh, 25px);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin-bottom: 5px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+            font-style: italic;
+            opacity: 0.95;
+        }
+
+        .rules {
+            background: white;
+            padding: clamp(15px, 3vw, 25px);
+            border-radius: 10px;
+            margin-bottom: clamp(15px, 3vh, 25px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 3px solid #dc2626;
+        }
+
+        .rules h2 {
+            color: #991b1b;
+            margin-bottom: 10px;
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 5px;
+        }
+
+        .rules ul {
+            list-style-position: inside;
+            line-height: 1.5;
+            font-size: clamp(0.75rem, 2vw, 1.05rem);
+        }
+
+        .rules li {
+            margin-bottom: 5px;
+            list-style-type: none;
+        }
+
+        .bingo-board {
+            background: white;
+            padding: clamp(10px, 2vw, 20px);
+            border-radius: 10px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            border: 3px solid #dc2626;
+            margin-bottom: clamp(15px, 3vh, 25px);
+            overflow: visible;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: clamp(4px, 1vw, 8px);
+            margin-top: 10px;
+            width: 100%;
+            overflow: visible;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid #1e3a8a;
+            border-radius: clamp(5px, 1vw, 10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(3px, 1vw, 10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 600;
+            text-align: center;
+            font-size: clamp(0.5rem, 1.5vw, 0.85rem);
+            line-height: 1.2;
+            overflow: visible;
+            word-break: break-word;
+        }
+
+        .cell:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            border-color: #dc2626;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            overflow: visible;
+            z-index: 10;
+        }
+
+        .cell.marked {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            border-color: #7f1d1d;
+            transform: scale(0.95);
+        }
+
+        .cell.marked::after {
+            content: '🍺';
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+
+        .cell.free {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            font-size: clamp(0.9rem, 2.5vw, 1.5rem);
+            font-weight: bold;
+            border-color: #1e3a8a;
+            cursor: default;
+        }
+
+        .cell.free::after {
+            content: '⭐';
+            position: absolute;
+            font-size: clamp(2rem, 5vw, 4rem);
+            opacity: 0.3;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+            font-weight: normal;
+            white-space: normal;
+            width: max(200px, 30vw);
+            max-width: 90vw;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            line-height: 1.4;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #1f2937;
+        }
+
+        .cell:hover .tooltip {
+            opacity: 1;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: clamp(15px, 3vh, 20px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            border: none;
+            padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 35px);
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .winner-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: clamp(30px, 5vw, 50px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 5px solid #dc2626;
+            text-align: center;
+            z-index: 2000;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 90vw;
+        }
+
+        .winner-message.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .winner-message h2 {
+            font-size: clamp(2rem, 6vw, 3rem);
+            color: #dc2626;
+            margin-bottom: 15px;
+        }
+
+        .winner-message p {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .winner-message .emoji {
+            font-size: clamp(3rem, 8vw, 5rem);
+            margin: 15px 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1999;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: clamp(10px, 3vh, 25px);
+            padding-bottom: 20px;
+            opacity: 0.9;
+            font-style: italic;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+        }
+
+        /* Landscape mobile optimization */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .rules {
+                display: none;
+            }
+
+            .grid {
+                gap: 3px;
+            }
+
+            .cell {
+                font-size: 0.5rem;
+                border-width: 1px;
+            }
+
+            footer {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Very small screens - compact everything */
+        @media (max-width: 480px) {
+            .container {
+                padding: 5px;
+            }
+
+            .grid {
+                gap: 3px;
+            }
+
+            .cell {
+                border-width: 1px;
+            }
+
+            .cell.marked::after {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇺🇸 SOTU DRINKING BINGO 🇺🇸</h1>
+            <p class="subtitle">State of the Union 2026 Edition</p>
+        </header>
+
+        <div class="rules">
+            <h2>📜 Game Rules</h2>
+            <ul>
+                <li><strong>Setup:</strong> Each player gets their own randomly generated bingo board.</li>
+                <li><strong>How to Play:</strong> Listen to the State of the Union address. When you hear a phrase or topic on your board, click that square to mark it (and take a drink! 🍺).</li>
+                <li><strong>Winning:</strong> First person to get 5 in a row (horizontal, vertical, or diagonal) shouts "BINGO!" and wins!</li>
+                <li><strong>Free Space:</strong> The center square is free and already marked for everyone.</li>
+                <li><strong>New Board:</strong> Click the "New Board" button to generate a fresh random board for each player.</li>
+                <li><strong>Drink Responsibly:</strong> This is a fun game, but please drink responsibly and know your limits!</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="generateNewBoard()">🎲 New Board</button>
+        </div>
+
+        <div class="bingo-board">
+            <div class="grid" id="bingoGrid"></div>
+        </div>
+
+        <footer>
+            <p>🎉 Enjoy the address responsibly! 🎉</p>
+        </footer>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="winner-message" id="winnerMessage">
+        <div class="emoji">🎉🍺🎉</div>
+        <h2>BINGO!</h2>
+        <p>You Win!</p>
+        <p>🏆 Congratulations! 🏆</p>
+        <button class="btn" onclick="closeWinner()">Play Again</button>
+    </div>
+
+    <script>
+        // CSV Data embedded
+        const csvData = `Display Name,Description,Source Note
+$1 Billion Membership,The fee for permanent status on the Board of Peace.,Time Magazine (Feb 19, 2026)
+1776 Commission,Restoration of the patriotic education initiative.,Executive Order (March 2025)
+America First,America First policy doctrine or slogan,Political slogan
+Amazing,Adjective used to emphasize positive outcomes,Speech pattern
+American 250,Celebrating the 250th anniversary of US independence in 2026,Actual upcoming anniversary
+American Dream,Making the American Dream achievable,Standard political rhetoric
+Beautiful,Adjective used to describe policies or agreements,Speech pattern
+Believe Me,Emphasis phrase for truthfulness,Speech pattern
+Best Economy Ever,Superlative claims about economic performance,Political rhetoric
+Big Tech,References to technology companies or regulation,Tech policy topic
+Birthright Citizenship,Changes to citizenship by birth policies,Immigration policy topic
+Board of Peace,The administration's mediation group for the Gaza conflict.,White House Statement (Jan 2026)
+Border Security,References to border wall completion or immigration enforcement,Standard policy topic
+Canada,Trade relations or border issues with Canada,Foreign policy topic
+China,Discussing competition with or policy toward China,Standard foreign policy topic
+Corrupt,Describing opponents institutions or systems as corrupt,Political rhetoric
+Crime,Reducing crime or supporting law enforcement,Domestic policy topic
+Deep State,References to embedded government opposition,Political rhetoric
+Disaster,Describing previous policies or situations as disastrous,Political rhetoric
+DOGE,Department of Government Efficiency (Musk/Ramaswamy initiative),Executive branch initiative
+Drain the Swamp,Cleaning up government corruption,Political slogan
+Drill Baby Drill,Energy independence slogan and policy emphasis,Energy policy catchphrase
+Electric Vehicles,Criticism of EV mandates or policies,Energy policy topic
+Energy Emergency,Declaration regarding energy policy actions,Policy declaration
+Energy Independence,American energy production and reducing foreign dependence,Energy policy topic
+Epstein Files,References to the 2026 transparency act or document releases.,Epstein Files Transparency Act (2025)
+Fake News,Criticism of media coverage,Political rhetoric
+Gaza,Israeli-Palestinian conflict or ceasefire discussions,Foreign policy topic
+God Bless America,Traditional closing phrase of addresses,Standard speech element
+Golden Age,Phrase used to describe the current era of American leadership,Commonly used in speeches
+Greatest Economy,Claims about economic performance or records,Common phrase
+Immigration Reform,Changes to immigration policy or system,Policy topic
+Incredible,Adjective used to describe achievements,Speech pattern
+Inflation,References to reducing inflation or economic progress,Economic policy topic
+Infrastructure,Roads bridges and infrastructure investment,Domestic policy topic
+Iran,Policy toward Iran sanctions or nuclear program,Foreign policy topic
+Israel,Support for Israel or Middle East policy,Foreign policy topic
+Jobs,Creating jobs or employment statistics,Standard economic topic
+Like You've Never Seen,Superlative comparison phrase,Speech pattern
+Make America Great Again,Campaign slogan or variations thereof,Political slogan
+Manufacturing,Bringing manufacturing back to America,Economic policy topic
+Many People Are Saying,Appeal to popular opinion or support,Speech pattern
+Mexico,Border security trade or immigration from Mexico,Foreign policy topic
+Middle Class,Supporting or protecting middle class families,Standard economic rhetoric
+Military,Strengthening or supporting the armed forces,Defense policy topic
+NATO,Discussion of trans-Atlantic alliance or burden sharing,Foreign policy topic
+Nobody Knew,Phrase suggesting complexity of issues,Speech pattern
+Nobody's Ever Seen,Superlative phrase emphasizing unprecedented nature,Speech pattern
+Nuclear,Discussion of nuclear weapons or nuclear energy,Policy topic
+Opioid Crisis,Addressing drug addiction and overdoses,Health policy topic
+Paris Climate Accord,Reference to US exit from climate agreement,Policy action that occurred
+Peace Through Strength,Foreign policy doctrine combining military power and diplomacy,Foreign policy doctrine
+Prescription Drugs,Lowering prescription drug costs,Healthcare policy topic
+Putin,Russian President Vladimir Putin,Foreign policy topic
+Radical Left,Criticism of progressive policies or opponents,Political rhetoric
+Religious Freedom,Protecting religious liberty,Constitutional policy topic
+Rigged,Describing elections systems or processes as rigged,Political rhetoric
+Russia,Policy toward Russia or Ukraine conflict mediation,Foreign policy topic
+Sanctuary Cities,Criticism of sanctuary city policies,Immigration policy topic
+Schedule F,Federal workforce classification changes,Administrative policy
+School Choice,Education policy regarding charter schools and vouchers,Education policy topic
+Second Amendment,Gun rights or Second Amendment protections,Constitutional policy topic
+Small Business,Supporting small business owners and entrepreneurs,Economic policy topic
+Space Exploration,American leadership in space programs,Science/technology policy
+Strong,Describing self policies or America as strong,Political rhetoric
+Supreme Court,Mentions of court appointments or decisions,Judicial topic
+Tariffs,Trade tariffs on imports or specific countries,Economic policy topic
+Tax Cuts,Discussion of tax reform or reduction,Economic policy topic
+Trade Deals,Fair trade agreements or renegotiating trade,Economic/foreign policy
+Tremendous,Adjective used to emphasize scale or success,Speech pattern
+Ukraine,War in Ukraine or peace negotiations,Foreign policy topic
+Unfair,Describing trade media or treatment as unfair,Political rhetoric
+Veterans,Supporting veterans or VA improvements,Standard policy topic
+Weak,Describing opponents or previous administration as weak,Political rhetoric
+Windmills,Criticism of wind energy,Energy policy topic
+Winning,Claims about winning or success,Political rhetoric
+Witch Hunt,Describing investigations or legal proceedings,Political rhetoric
+Working Families,Supporting American working families,Standard political rhetoric
+World Health Organization,Discussion of US withdrawal from WHO,Policy action that occurred
+Xi Jinping,Chinese President Xi Jinping,Foreign policy topic`;
+
+        // Parse CSV data
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            const items = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                const match = line.match(/^([^,]+),([^,]+),(.+)$/);
+                if (match) {
+                    items.push({
+                        name: match[1].trim(),
+                        description: match[2].trim()
+                    });
+                }
+            }
+            
+            return items;
+        }
+
+        const allItems = parseCSV(csvData);
+        let currentBoard = [];
+
+        // Shuffle array
+        function shuffle(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Generate new board
+        function generateNewBoard() {
+            const shuffled = shuffle(allItems);
+            currentBoard = shuffled.slice(0, 24);
+            renderBoard();
+        }
+
+        // Render the board
+        function renderBoard() {
+            const grid = document.getElementById('bingoGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                if (i === 12) {
+                    // Center cell - FREE space
+                    cell.classList.add('free', 'marked');
+                    cell.textContent = 'FREE';
+                    cell.dataset.marked = 'true';
+                } else {
+                    const itemIndex = i < 12 ? i : i - 1;
+                    const item = currentBoard[itemIndex];
+                    
+                    cell.textContent = item.name;
+                    cell.dataset.marked = 'false';
+                    
+                    // Add tooltip
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    tooltip.textContent = item.description;
+                    cell.appendChild(tooltip);
+                    
+                    cell.addEventListener('click', function() {
+                        toggleCell(this, i);
+                    });
+                }
+                
+                grid.appendChild(cell);
+            }
+        }
+
+        // Toggle cell marked state
+        function toggleCell(cell, index) {
+            if (cell.classList.contains('free')) return;
+            
+            const isMarked = cell.dataset.marked === 'true';
+            cell.dataset.marked = (!isMarked).toString();
+            cell.classList.toggle('marked');
+            
+            // Check for win
+            setTimeout(checkWin, 100);
+        }
+
+        // Check for bingo
+        function checkWin() {
+            const cells = document.querySelectorAll('.cell');
+            const board = Array.from(cells).map(cell => cell.dataset.marked === 'true');
+            
+            // Check rows
+            for (let row = 0; row < 5; row++) {
+                if (board.slice(row * 5, row * 5 + 5).every(x => x)) {
+                    showWinner();
+                    return;
+                }
+            }
+            
+            // Check columns
+            for (let col = 0; col < 5; col++) {
+                if ([0, 1, 2, 3, 4].every(row => board[row * 5 + col])) {
+                    showWinner();
+                    return;
+                }
+            }
+            
+            // Check diagonals
+            if ([0, 6, 12, 18, 24].every(i => board[i])) {
+                showWinner();
+                return;
+            }
+            
+            if ([4, 8, 12, 16, 20].every(i => board[i])) {
+                showWinner();
+                return;
+            }
+        }
+
+        // Show winner message
+        function showWinner() {
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('winnerMessage').classList.add('show');
+        }
+
+        // Close winner message
+        function closeWinner() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('winnerMessage').classList.remove('show');
+            generateNewBoard();
+        }
+
+        // Initialize on load
+        generateNewBoard();
+    </script>
+</body>
+</html>
